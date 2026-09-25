@@ -1,8 +1,14 @@
-# MSAlign
+# MSAlign: Aligning Molecule and Mass Spectra representations for Metabolite Identification
 
-MSAlign learns a shared space between a frozen mass-spectrum representation and
-a frozen molecular representation, then retrieves a molecule by ranking its
-candidate set. 
+[![arXiv](https://img.shields.io/badge/arXiv-2505.22109-B31B1B)](https://arxiv.org/abs/2605.19752)
+[![Zenodo](https://img.shields.io/badge/data-Zenodo-000080)](https://arxiv.org/abs/2605.19752)
+[![NeurIPS 2026](https://img.shields.io/badge/NeurIPS-2026-0B6E4F)](https://arxiv.org/abs/2605.19752)
+
+![MSAlign Overview](data/MSAlign.jpg)
+
+**MSAlign** is a model that aligns the latent space of MolDeBERTa and DreaMS and use the similarity in shared space for molecular retrieval.
+
+**MSAlign+** combines 7 different scores (including MSAlign) via late score fusion to further improves the retrieval accuracy. 
 
 ## Environment
 
@@ -66,7 +72,7 @@ This creates:
 The creation of the candidate sets requires multiple CPU cores for fast execution.
 
 Alternatively, skip this preparation step by downloading `massspecgym.zip` and
-`spectraverse.zip` from [add link here], then extract them so that the data
+`spectraverse.zip` from [zenodo](https://zenodo.org/records/22830464), then extract them so that the data
 directory has the following layout:
 
 ```text
