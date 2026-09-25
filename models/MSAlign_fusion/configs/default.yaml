@@ -1,4 +1,4 @@
-# MSAlign^4M: four representation-pair models plus three mass resolutions.
+# MSAlign+: four representation-pair models plus mass resolutions.
 # A directory-valued checkpoint is resolved as
 #   <directory>/<dataset>__<candidate_map>__<split>.ckpt
 cache_dir: cache/MSAlign_fusion

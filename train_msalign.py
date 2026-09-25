@@ -6,7 +6,7 @@ Example::
         --candidate-map official_candidates_by_mass --split formula_seed1
 
 The representation flags are the only architecture switch needed to train the
-four constituents of MSAlign^4.
+four constituents of MSAlign+.
 """
 
 from __future__ import annotations
@@ -28,7 +28,7 @@ def parse_args():
     parser.add_argument("--split", dest="split_method", required=True)
     parser.add_argument("--spectrum-representation", choices=("dreams", "bins"))
     parser.add_argument("--molecule-representation", choices=("moldeberta_base_123m_mtr", "morgan_2_4096"))
-    parser.add_argument("--all-representations", action="store_true", help="Train all four models used by MSAlign^4")
+    parser.add_argument("--all-representations", action="store_true", help="Train all four models used by MSAlign+")
     parser.add_argument("--output-checkpoint")
     parser.add_argument("--workers", dest="n_workers", type=int, default=8)
     parser.add_argument("--test-batch-size", dest="batch_size_test", type=int, default=16)

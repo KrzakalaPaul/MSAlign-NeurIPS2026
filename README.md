@@ -2,13 +2,7 @@
 
 MSAlign learns a shared space between a frozen mass-spectrum representation and
 a frozen molecular representation, then retrieves a molecule by ranking its
-candidate set. The paper uses DreaMS for spectra and MolDeBERTa for molecules.
-
-The repository also implements late score fusion:
-
-- **MSAlign**: DreaMS + MolDeBERTa;
-- **MSAlign⁴**: the four pairs in `{DreaMS, bins} × {MolDeBERTa, Morgan}`;
-- **MSAlign⁴M**: MSAlign⁴ plus estimated-mass scores at 0.1, 1, and 10 ppm.
+candidate set. 
 
 ## Environment
 

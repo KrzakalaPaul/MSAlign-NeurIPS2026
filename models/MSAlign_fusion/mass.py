@@ -1,4 +1,4 @@
-"""Estimated-mass score used by MSAlign^M and MSAlign^4M."""
+"""Estimated-mass score used by MSAlign+."""
 
 from __future__ import annotations
 
