@@ -169,7 +169,7 @@ Add `--normalize` to also collect the five available random references
 
 Every missing raw value is added to the same CSV; cached rows are reused.
 
-### 5. Train all models required by MSAlign⁴
+### 5. Train all models required by MSAlign+
 
 `--all-representations` trains the four representation pairs and writes them
 under `checkpoints/{dreams_moldeberta,dreams_fingerprint,bins_moldeberta,bins_fingerprint}`.
