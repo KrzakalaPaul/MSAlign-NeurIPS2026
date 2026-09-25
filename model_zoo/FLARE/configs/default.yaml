@@ -1,0 +1,39 @@
+# MAX SIM
+use_max_sim: True
+pooling_mol: "max" # Not used if use_max_sim is True, but kept for ablations
+pooling_ms: "max" # Not used if use_max_sim is True, but kept for ablations
+
+# PEAK TRANSFORMER
+formula_projection: [512, 256]
+transformer_d_model: 256
+transformer_d_hidden: 512
+transformer_n_layers: 2
+transformer_n_heads: 4
+transformer_dropout: 0.1571042734775
+
+# GNN
+gnn_channels: [128, 256]
+gnn_hidden_dim: 512
+attn_heads: [12, 12]
+gnn_dropout: 0.1571042734775
+gnn_type: "gcn"
+mlp_dropout: 0.1571042734775
+
+shared_dim: 512
+
+# Training
+lr: 0.000028813
+weight_decay: 0.000018376
+n_warmup_steps: 0
+n_epochs_train: 1000
+
+
+# Loss
+k_candidates: 32
+batch_size: 64
+temperature: 0.0227
+trainable_temperature: False
+
+# Hardware concerns
+n_workers: 8
+batch_size_eval: 16

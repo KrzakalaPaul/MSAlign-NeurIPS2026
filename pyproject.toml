@@ -1,0 +1,38 @@
+[project]
+name = "msalign"
+version = "0.1.0"
+description = "Alignment and score fusion for mass-spectrum molecular retrieval"
+readme = "README.md"
+requires-python = ">=3.11,<3.12"
+dependencies = [
+    "lightning>=2.6.1",
+    "tqdm",
+    "wandb",
+    "pyyaml",
+    "numpy<2.0",
+    "scipy",
+    "pandas",
+    "h5py",
+    "rdkit>=2023",
+    "torch==2.2.1",
+]
+
+[project.optional-dependencies]
+# Only needed to download raw data and rebuild MolDeBERTa representations.
+# DreaMS is deliberately run in an isolated script environment (see
+# preprocessing/encode_dreams.py) because its official dependency pins
+# conflict with the main environment.
+preprocessing = [
+    "transformers>=4.40.0,<5.0.0",
+    "huggingface-hub>=0.30.0,<1.0",
+    "pyteomics>=4.7.5",
+]
+
+# JESTR, FLARE, and MVP use graph neural networks. DeepSets and EmbCos do not
+# need this extra.
+graph-baselines = [
+    "torchdata==0.7.1",
+    "dgl @ https://data.dgl.ai/wheels/cu121/dgl-2.1.0%2Bcu121-cp311-cp311-manylinux1_x86_64.whl",
+    "dgllife>=0.3.2",
+    "pydantic>=2",
+]

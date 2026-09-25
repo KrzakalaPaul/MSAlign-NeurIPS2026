@@ -1,0 +1,39 @@
+# MLP BINS
+ms_encoder_hidden_dim: 512
+n_hidden_layers: 1
+mlp_dropout: 0.4
+layernorm: True
+
+# GNN
+gnn_channels: [64,128,256]
+gnn_hidden_dim: 512
+attn_heads: [12,12,12]
+gnn_dropout: 0.2
+pooling: "max"
+gnn_type: "gcn"
+
+shared_dim: 128
+
+# Encoders
+bin_width: 1.0
+max_mz: 1005
+
+# Training
+lr: 0.0001
+lr_finetune: 0.00001
+weight_decay: 0.0
+n_warmup_steps: 2000
+n_warmup_steps_finetune: 1000
+n_epochs_pretrain: 1000
+n_epochs_finetune: 15
+
+# Loss
+k_candidates: 32
+batch_size: 32
+trainable_temperature: False
+
+# Hardware concerns
+# Maximum number of candidate graphs processed by one vectorized GNN call.
+candidate_gnn_batch_size: 1024
+n_workers: 8
+batch_size_eval: 16

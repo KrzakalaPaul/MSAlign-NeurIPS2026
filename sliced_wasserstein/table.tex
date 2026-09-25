@@ -1,0 +1,22 @@
+\begin{table}[t]
+\centering
+\small
+\resizebox{0.9\columnwidth}{!}{%
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+& \multicolumn{6}{c}{\textbf{Data Splitting Criterion}}\\
+\cmidrule{2-7}
+\textbf{Encoders} & \textbf{Random} & \textbf{InChIKey} & \textbf{Formula} & \textbf{Murcko Scaffold} & \textbf{MCES} & \textbf{Murcko Histogram} \\
+\midrule
+$\mathrm{Binned}-\mathrm{Morgan}$ & $1.00 \pm 0.03$ & $4.76 \pm 0.17$ & $5.19 \pm 0.35$ & $9.24 \pm 1.02$ & $9.10 \pm 0.33$ & $15.22 \pm 4.83$ \\
+$\mathrm{DreaMS}-\mathrm{Morgan}$ & $1.00 \pm 0.03$ & $4.99 \pm 0.20$ & $5.71 \pm 0.35$ & $9.76 \pm 1.26$ & $11.95 \pm 0.53$ & $17.66 \pm 5.64$ \\
+$\mathrm{Binned}-\mathrm{MolDeBERTa}$ & $1.00 \pm 0.02$ & $4.00 \pm 0.42$ & $4.65 \pm 0.27$ & $7.01 \pm 0.71$ & $12.41 \pm 0.86$ & $15.12 \pm 4.32$ \\
+$\mathrm{DreaMS}-\mathrm{MolDeBERTa}$ & $1.00 \pm 0.04$ & $4.44 \pm 0.28$ & $4.98 \pm 0.44$ & $8.51 \pm 0.57$ & $15.89 \pm 0.75$ & $18.42 \pm 5.62$ \\
+\bottomrule
+\end{tabular}
+}
+\vspace{0.2cm}
+\caption{Normalized Sliced Wasserstein shift between the training and test sets for the different data-splitting strategies. We report average and standard deviation over five splits, except for MCES which has two splits.}
+\label{tab:splits}
+\vspace{-0.6cm}
+\end{table}

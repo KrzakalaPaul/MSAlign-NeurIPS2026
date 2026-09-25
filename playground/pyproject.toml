@@ -1,0 +1,16 @@
+[project]
+name = "msalign-playground"
+version = "0.1.0"
+description = "Isolated environment for raw-input MSAlign inference"
+requires-python = ">=3.11,<3.12"
+dependencies = [
+    "dreams @ git+https://github.com/pluskal-lab/DreaMS.git@dbec3a0b514a99e5056cfccde4559fda8cfe8129",
+    "ipykernel>=6.29,<7",
+    "jupyterlab>=4,<5",
+    "lightning==2.0.8",
+    "pyyaml",
+    "transformers>=4.40,<5",
+]
+
+[tool.uv]
+package = false

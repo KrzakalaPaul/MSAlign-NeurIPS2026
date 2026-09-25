@@ -1,0 +1,28 @@
+# DeepSets + Fourier features baseline used in the MSAlign paper.
+seed: 42
+
+architecture:
+  hidden_dim: 128
+  output_dim: 4096
+  num_layers_per_mlp: 4
+  dropout: 0.1
+  fourier_features: true
+
+spectrum:
+  # Keep the 60 strongest peaks and prepend precursor m/z at intensity 1.1.
+  n_peaks: 60
+  mz_min: 10.0
+  mz_max: 1000.0
+  precursor_intensity: 1.1
+
+training:
+  lr: 0.0003
+  batch_size: 16
+  epochs: 50
+  accelerator: gpu
+  gradient_clip_val: 0.0
+  log_every_n_steps: 10
+
+data:
+  root: data
+  prefetch_factor: 2

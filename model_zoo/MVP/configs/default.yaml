@@ -1,0 +1,35 @@
+# MVP FormSpec baseline. Its peak annotations use the target molecular formula,
+# so the result is oracle-assisted, as stated in the paper.
+spectrum_mode: formula
+seed: 0
+d_shared: 512
+
+spectrum:
+  max_mz: 1000.0
+  bin_width: 1.0
+
+formula_encoder:
+  dimensions: [64, 128, 256]
+  dropout: 0.2
+  n_transformer_layers: 2
+  n_heads: 2
+
+gnn_type: gcn
+gnn_channels: [64, 128, 256]
+gnn_hidden_dim: 512
+gnn_dropout: 0.3
+fc_dropout: 0.4
+temperature: 0.05
+
+optimization:
+  lr: 0.00007
+  weight_decay: 0.0
+
+training:
+  batch_size: 64
+  max_epochs: 1500
+  accelerator: gpu
+  log_every_n_steps: 250
+
+data:
+  root: data

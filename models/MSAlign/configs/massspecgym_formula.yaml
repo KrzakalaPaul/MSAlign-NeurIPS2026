@@ -1,0 +1,36 @@
+# MSAlign configuration used for the MassSpecGym formula splits.
+seed: 42
+
+representations:
+  spectrum: dreams
+  molecule: moldeberta_base_123m_mtr
+
+model:
+  d_shared: 512
+  d_hidden: 2048
+  d_metadata: 64
+  n_hidden_layers_ms_pre: 0
+  n_hidden_layers_ms_post: 2
+  n_hidden_layers_mol: 3
+  dropout: 0.30
+  temperature_init: 0.07
+  use_collision_energy: true
+  use_adduct: true
+
+training:
+  k_candidates: 128
+  batch_size: 128
+  learning_rate: 0.0001
+  weight_decay: 0.000001
+  n_warmup_steps: 2000
+  n_max_steps: 30000
+  accelerator: gpu
+  gradient_clip_val: 5.0
+  log_every_n_steps: 10
+
+# Used only when representations.spectrum is changed to "bins".
+spectrum_bins:
+  max_mz: 1005.0
+  bin_width: 0.1
+
+data_root: data
