@@ -23,6 +23,7 @@ from transformers import AutoModel, AutoTokenizer
 
 
 MODEL_ID = "SaeedLab/MolDeBERTa-base-123M-mtr"
+MODEL_REVISION = "7d06a5f39098837a6f33ed095e2fa7706e30f8b9"
 REPRESENTATION_NAME = "moldeberta_base_123m_mtr"
 OUTPUT_DIMENSION = 768
 
@@ -52,7 +53,7 @@ def canonical_smiles(smiles: str) -> str:
 class MolDeBERTaEncoder:
     """Frozen MolDeBERTa using its first-token representation."""
 
-    def __init__(self, device: str = "cuda", revision: str | None = None):
+    def __init__(self, device: str = "cuda", revision: str = MODEL_REVISION):
         token = os.environ.get("HF_TOKEN")
         if not token:
             raise RuntimeError("Set HF_TOKEN after accepting the MolDeBERTa model terms")

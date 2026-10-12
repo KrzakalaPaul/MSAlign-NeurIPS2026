@@ -2,7 +2,8 @@
 
 MSAlign maps one spectrum representation and one molecular representation to a
 shared space. The released model uses DreaMS and MolDeBERTa; changing the two
-representation names also trains the four constituents used by MSAlign⁴.
+representation names also trains the four representation-pair constituents
+used by MSAlign+.
 
 ```text
 spectrum -> MLP -> concatenate(energy, adduct) -> MLP -> normalize

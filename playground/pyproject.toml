@@ -8,7 +8,10 @@ dependencies = [
     "ipykernel>=6.29,<7",
     "jupyterlab>=4,<5",
     "lightning==2.0.8",
+    "numpy<2",
     "pyyaml",
+    "rdkit>=2023",
+    "torch==2.2.1",
     "transformers>=4.40,<5",
 ]
 

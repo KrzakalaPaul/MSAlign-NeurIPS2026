@@ -1,0 +1,27 @@
+# Local datasets and generated artifacts
+/data/
+/checkpoints/
+/cache/
+/logs/
+/results/
+/releases/
+/downloads/
+/wandb/
+/models_remote/
+
+# Python environments and caches
+.venv*/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+build/
+dist/
+
+# Local configuration
+.env
+.envrc
+.idea/
+.vscode/
+.ipynb_checkpoints/

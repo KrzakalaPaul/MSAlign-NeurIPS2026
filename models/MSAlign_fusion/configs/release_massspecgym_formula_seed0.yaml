@@ -1,0 +1,26 @@
+# Calibration used by the released MassSpecGym formula_seed0 bundle.
+cache_dir: cache/MSAlign_fusion
+formula_filter: false
+
+evaluation_targets:
+  - labelled_dataset_name: massspecgym
+    candidate_map_name: official_candidates_by_mass
+    split_method: formula_seed0
+
+fit:
+  temperature_min: 0.001
+  temperature_max: 10.0
+  n_temperature_values: 41
+  n_workers: 4
+
+scorers:
+  - {name: dreams_moldeberta, type: msalign, checkpoint: checkpoints/dreams_moldeberta, batch_size: 16, n_workers: 8}
+  - {name: dreams_fingerprint, type: msalign, checkpoint: checkpoints/dreams_fingerprint, batch_size: 16, n_workers: 8}
+  - {name: bins_moldeberta, type: msalign, checkpoint: checkpoints/bins_moldeberta, batch_size: 16, n_workers: 8}
+  - {name: bins_fingerprint, type: msalign, checkpoint: checkpoints/bins_fingerprint, batch_size: 16, n_workers: 8}
+  - {name: mass_ppm_0.01, type: estimated_mass, mass_score: {mass_error_unit: ppm, transform: gaussian, scale: 0.01}}
+  - {name: mass_ppm_0.1, type: estimated_mass, mass_score: {mass_error_unit: ppm, transform: gaussian, scale: 0.1}}
+  - {name: mass_ppm_1, type: estimated_mass, mass_score: {mass_error_unit: ppm, transform: gaussian, scale: 1.0}}
+  - {name: mass_ppm_10, type: estimated_mass, mass_score: {mass_error_unit: ppm, transform: gaussian, scale: 10.0}}
+
+output_csv: results/release_massspecgym_formula_seed0.csv
