@@ -24,28 +24,34 @@ cd MSAlign-NeurIPS2026
 
 ## Applying pretrained MSAlign to my data
 
-The playground scores a raw centroided spectrum against one or more candidate
-SMILES. It does not require the training datasets or precomputed embeddings. It
-uses its own `playground/.venv`, independently of the training environment.
+The playground scores a centroided spectrum against one or more candidate
+SMILES. It requires neither training data nor precomputed embeddings.
 
-Python 3.11, [`uv`](https://docs.astral.sh/uv/), and a CUDA GPU are required.
+Requirements:
+
+- Python 3.11 and [`uv`](https://docs.astral.sh/uv/);
+- a CUDA GPU;
+- access to the gated
+  [MolDeBERTa model](https://huggingface.co/SaeedLab/MolDeBERTa-base-123M-mtr).
+
+### 1. Download a checkpoint
 
 Download one of the pretrained checkpoint archives from
-[Zenodo record 22830464](https://zenodo.org/records/22830464). From the
-repository root, extract it under `checkpoints/`:
+[Zenodo record 22830464](https://zenodo.org/records/22830464), then extract it
+under `checkpoints/`:
 
 ```bash
 mkdir -p checkpoints
 unzip msalign_massspecgym_formula_seed0.zip -d checkpoints
 ```
 
-This produces, for example,
-`checkpoints/msalign_massspecgym_formula_seed0/`, which is the path passed to
-`MSAlign`. The MSAlign+ archives are extracted in exactly the same way.
+- MSAlign example: `checkpoints/msalign_massspecgym_formula_seed0/`
+- MSAlign+ archives use the same directory layout.
 
-Install the isolated inference environment. Accept the
-[MolDeBERTa terms](https://huggingface.co/SaeedLab/MolDeBERTa-base-123M-mtr)
-and provide a Hugging Face token before the first use:
+### 2. Install the inference environment
+
+The playground uses its own `playground/.venv`. After accepting the MolDeBERTa
+terms, run:
 
 ```bash
 uv sync --project playground --locked
@@ -53,14 +59,15 @@ export HF_TOKEN=hf_your_token_here
 code .
 ```
 
-Open `playground/MSAlign_playground.ipynb` directly in VS Code and select
-`playground/.venv/bin/python` as its kernel. The notebook resolves repository
-and checkpoint paths regardless of whether VS Code starts it from the repository
-root or from `playground/`. Launching VS Code from this terminal also makes
-`HF_TOKEN` available to the notebook kernel.
+### 3. Open the notebook
 
-The notebook defines the spectrum and candidates directly and exposes the same
-interface for MSAlign and MSAlign+:
+- Open `playground/MSAlign_playground.ipynb` in VS Code.
+- Select `playground/.venv/bin/python` as the kernel.
+- Run the cells. Starting VS Code with `code .` passes `HF_TOKEN` to the kernel.
+
+### 4. Score candidates
+
+MSAlign and MSAlign+ expose the same interface:
 
 ```python
 from playground import MSAlign
@@ -70,10 +77,11 @@ score = model(spectrum, "CCO")
 scores = model(spectrum, ["CCO", "CCCO", "c1ccccc1"])
 ```
 
-A single candidate returns a `float`; a candidate list returns scores in the
-same order. Switching from MSAlign to MSAlign+ only requires changing the
-checkpoint path. See the [playground documentation](playground/README.md) for
-the expected spectrum, metadata, and SMILES formats.
+- One candidate returns a `float`.
+- A candidate list returns scores in the same order.
+- Switching to MSAlign+ only requires changing the checkpoint path.
+- Input formats and preprocessing are documented in the
+  [playground README](playground/README.md).
 
 ## Reproducing the training experiments
 
