@@ -15,6 +15,7 @@ from download_prepared_data import _safe_extract, _valid_dataset
 from models.MSAlign import MSAlign as AlignmentModel
 from playground.bundle import load_manifest, sha256_file
 from playground.inference import (
+    MSAlign as PlaygroundMSAlign,
     _adduct_offset,
     _binned_spectrum,
     _canonical_smiles,
@@ -110,6 +111,55 @@ class BundleTests(unittest.TestCase):
         torch.testing.assert_close(
             _combine_channels(fused, channels), torch.tensor([4.0, 5.75])
         )
+
+    def test_normalized_shared_space_embeddings_match_raw_score(self):
+        class Alignment:
+            temperature = torch.tensor(0.5)
+
+            @staticmethod
+            def encode_spectrum(spectrum, metadata):
+                return spectrum
+
+            @staticmethod
+            def encode_molecule(molecule):
+                return molecule
+
+            def __call__(self, spectrum, candidates, metadata, candidate_mask):
+                spectrum = torch.nn.functional.normalize(spectrum, dim=-1)
+                molecule = torch.nn.functional.normalize(candidates[0], dim=-1)
+                return (spectrum @ molecule.T) / self.temperature
+
+        model = object.__new__(PlaygroundMSAlign)
+        model.device = torch.device("cpu")
+        model.alignment_scorers = [{
+            "name": "raw",
+            "model": Alignment(),
+            "config": {"representations": {
+                "spectrum": "dreams",
+                "molecule": "moldeberta_base_123m_mtr",
+            }},
+            "dimensions": {"adduct_vocabulary": None},
+        }]
+        model.mass_scorers = []
+        model.manifest = {"scorers": [{"name": "raw"}]}
+        model._spectrum_representations = lambda peaks, precursor: {
+            "dreams": torch.tensor([[3.0, 4.0]])
+        }
+        model._molecule_representations = lambda canonical, molecules: {
+            "moldeberta_base_123m_mtr": torch.tensor([[0.0, 2.0]])
+        }
+
+        spectrum = {"peaks": [[10.0, 1.0]], "precursor_mz": 100.0}
+        ms = model.encode_ms([spectrum])
+        mol = model.encode_mol(["CCO"])
+        torch.testing.assert_close(ms.norm(dim=-1), torch.ones(1))
+        torch.testing.assert_close(mol.norm(dim=-1), torch.ones(1))
+        score = model(spectrum, "CCO")
+        self.assertAlmostEqual(float((ms @ mol.T)[0, 0]) / model.temperature, score)
+
+        model.mass_scorers = [{"name": "mass"}]
+        with self.assertRaisesRegex(RuntimeError, "only defined for raw MSAlign"):
+            model.encode_ms([spectrum])
 
 
 class DownloaderTests(unittest.TestCase):

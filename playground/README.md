@@ -71,6 +71,20 @@ omitted or set to `None`. A string candidate returns a `float`; a list returns a
 list of scores in the same order. These values are relative retrieval scores,
 not calibrated probabilities.
 
+Raw MSAlign bundles also expose their unit-normalized shared-space embeddings:
+
+```python
+ms_embeddings = model.encode_ms([spectrum_1, spectrum_2])
+mol_embeddings = model.encode_mol([smiles_1, smiles_2])
+
+score = (ms_embeddings[0] @ mol_embeddings[0]) / model.temperature
+```
+
+Both methods return CPU tensors with shape `[n_inputs, d_shared]`. The learned
+temperature appears because MSAlign scores are temperature-scaled cosine
+similarities. MSAlign+ combines several independently trained shared spaces, so
+it does not expose a single `encode_ms` or `encode_mol` representation.
+
 ## Input format and preprocessing
 
 ### Spectrum

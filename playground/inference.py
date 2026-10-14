@@ -189,6 +189,23 @@ class MSAlign:
         self._moldeberta = None
         self._moldeberta_tokenizer = None
 
+    def _raw_alignment_scorer(self) -> dict:
+        """Return the unique shared-space model in a raw MSAlign bundle."""
+
+        if len(self.alignment_scorers) != 1 or self.mass_scorers:
+            raise RuntimeError(
+                "Shared-space embeddings are only defined for raw MSAlign "
+                "bundles; MSAlign+ combines several different spaces"
+            )
+        return self.alignment_scorers[0]
+
+    @property
+    def temperature(self) -> float:
+        """Learned temperature used to turn cosine similarity into a score."""
+
+        scorer = self._raw_alignment_scorer()
+        return float(scorer["model"].temperature.detach().cpu())
+
     def _load_dreams(self) -> None:
         if self._dreams is not None:
             return
@@ -313,6 +330,50 @@ class MSAlign:
                 [energy], dtype=torch.float32, device=device
             ),
         }
+
+    @torch.inference_mode()
+    def encode_ms(self, spectra: Sequence[dict]) -> torch.Tensor:
+        """Return one unit-normalized shared-space vector per spectrum."""
+
+        if not isinstance(spectra, Sequence) or isinstance(spectra, (str, bytes)):
+            raise ValueError("spectra must be a non-empty list of spectrum dictionaries")
+        spectra = list(spectra)
+        if not spectra:
+            raise ValueError("spectra must be a non-empty list of spectrum dictionaries")
+
+        scorer = self._raw_alignment_scorer()
+        name = scorer["config"]["representations"]["spectrum"]
+        embeddings = []
+        for spectrum in spectra:
+            peaks, precursor_mz, adduct, energy = _validate_spectrum(spectrum)
+            representation = self._spectrum_representations(
+                peaks, precursor_mz
+            )[name]
+            embedding = scorer["model"].encode_spectrum(
+                representation,
+                self._metadata(scorer["dimensions"], adduct, energy, self.device),
+            )
+            embeddings.append(torch.nn.functional.normalize(embedding, dim=-1))
+        return torch.cat(embeddings).cpu()
+
+    @torch.inference_mode()
+    def encode_mol(self, smiles: Sequence[str]) -> torch.Tensor:
+        """Return one unit-normalized shared-space vector per SMILES string."""
+
+        if not isinstance(smiles, Sequence) or isinstance(smiles, (str, bytes)):
+            raise ValueError("smiles must be a non-empty list of SMILES strings")
+        smiles = list(smiles)
+        if not smiles:
+            raise ValueError("smiles must be a non-empty list of SMILES strings")
+
+        scorer = self._raw_alignment_scorer()
+        name = scorer["config"]["representations"]["molecule"]
+        canonical, molecules = _canonical_smiles(smiles)
+        representation = self._molecule_representations(
+            canonical, molecules
+        )[name]
+        embeddings = scorer["model"].encode_molecule(representation)
+        return torch.nn.functional.normalize(embeddings, dim=-1).cpu()
 
     @torch.inference_mode()
     def _score_channels(
