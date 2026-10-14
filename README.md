@@ -44,8 +44,14 @@ and provide a Hugging Face token before the first use:
 ```bash
 uv sync --project playground --locked
 export HF_TOKEN=hf_your_token_here
-uv run --project playground jupyter lab playground/MSAlign_playground.ipynb
+code .
 ```
+
+Open `playground/MSAlign_playground.ipynb` directly in VS Code and select
+`playground/.venv/bin/python` as its kernel. The notebook resolves repository
+and checkpoint paths regardless of whether VS Code starts it from the repository
+root or from `playground/`. Launching VS Code from this terminal also makes
+`HF_TOKEN` available to the notebook kernel.
 
 The notebook defines the spectrum and candidates directly and exposes the same
 interface for MSAlign and MSAlign+:

@@ -7,21 +7,19 @@ precomputed representations.
 ## Installation
 
 The environment is isolated because DreaMS pins an older dependency stack.
-From the repository root:
+Before the first run, accept the terms for
+[`SaeedLab/MolDeBERTa-base-123M-mtr`](https://huggingface.co/SaeedLab/MolDeBERTa-base-123M-mtr).
+A CUDA GPU is required. From the repository root:
 
 ```bash
 uv sync --project playground --locked
-source playground/.venv/bin/activate
-jupyter lab playground/MSAlign_playground.ipynb
-```
-
-A CUDA GPU is required. Before the first run, accept the terms for
-[`SaeedLab/MolDeBERTa-base-123M-mtr`](https://huggingface.co/SaeedLab/MolDeBERTa-base-123M-mtr)
-and export a Hugging Face token:
-
-```bash
 export HF_TOKEN=hf_your_token_here
+code .
 ```
+
+Open `playground/MSAlign_playground.ipynb` directly in VS Code and select
+`playground/.venv/bin/python` as the notebook kernel. No JupyterLab server is
+required. Starting VS Code from this terminal passes `HF_TOKEN` to the kernel.
 
 DreaMS and MolDeBERTa are downloaded from their official sources on first use
 and then read from their normal local caches. Their weights are not included in
