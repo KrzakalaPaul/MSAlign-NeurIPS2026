@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+# Run this once on a login node. Do not submit it with sbatch.
+
+set -euo pipefail
+
+if ! command -v uv >/dev/null 2>&1; then
+  echo "ERROR: uv is required on the login node." >&2
+  exit 1
+fi
+
+# Installing the CUDA wheels in parallel can exceed per-process limits on
+# shared login nodes. Users may override these conservative defaults.
+export UV_CONCURRENT_DOWNLOADS="${UV_CONCURRENT_DOWNLOADS:-2}"
+export UV_CONCURRENT_BUILDS="${UV_CONCURRENT_BUILDS:-1}"
+export UV_CONCURRENT_INSTALLS="${UV_CONCURRENT_INSTALLS:-1}"
+
+echo "[1/2] Creating the main preprocessing/training environment"
+uv sync --locked --extra preprocessing
+
+echo "[2/2] Creating the isolated DreaMS environment"
+uv sync --project playground --locked
+
+# An interrupted installation can leave a package's metadata in place while
+# compiled extension modules are missing. In that case `uv sync` considers the
+# environment current, so repair SciPy explicitly before checking the complete
+# inference import chain.
+if ! playground/.venv/bin/python -c "import scipy.sparse._csr" >/dev/null 2>&1; then
+  echo "Repairing an incomplete SciPy installation"
+  uv pip install \
+    --python playground/.venv/bin/python \
+    --reinstall-package scipy \
+    "scipy==1.15.3"
+fi
+
+test -x .venv/bin/python
+test -x playground/.venv/bin/python
+playground/.venv/bin/python -c \
+  "from scipy.sparse import csr_matrix; from transformers import AutoModel; from playground import MSAlign"
+echo "Shared environments are ready. The SLURM jobs do not require uv."

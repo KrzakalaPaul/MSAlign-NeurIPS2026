@@ -1,8 +1,8 @@
 # Score fusion
 
-MSAlign⁴ combines the candidate scores of models trained with the four pairs in
-`{DreaMS, bins} × {MolDeBERTa, Morgan}`. MSAlign⁴M additionally includes three
-Gaussian mass scores with standard deviations 0.1, 1, and 10 ppm.
+MSAlign+ combines the candidate scores of models trained with the four pairs in
+`{DreaMS, bins} × {MolDeBERTa, Morgan}` and Gaussian mass scores with standard
+deviations 0.01, 0.1, 1, and 10 ppm.
 
 For weights on the simplex, calibration minimizes a convex listwise loss. It
 does so for a log-spaced grid of temperatures and retains the weights with the

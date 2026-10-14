@@ -19,7 +19,7 @@ The public pipeline has three stages:
 2. `prepare_data.py` canonicalizes SMILES, creates formula or MCES splits, and
    constructs the candidate map.
 3. `precompute_representations.py` computes the frozen DreaMS, MolDeBERTa, and
-   packed Morgan representations used by MSAlign⁴. Pass `--annotate-peaks` to
+   packed Morgan representations used by MSAlign+. Pass `--annotate-peaks` to
    also generate the peak-subformula annotations consumed by FLARE and MVP.
 
 All artifacts are stored under `data/<dataset>/`. Candidate representations use

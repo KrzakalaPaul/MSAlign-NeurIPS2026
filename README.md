@@ -1,55 +1,128 @@
 # MSAlign: Aligning Molecule and Mass Spectra representations for Metabolite Identification
 
 [![arXiv](https://img.shields.io/badge/arXiv-2505.22109-B31B1B)](https://arxiv.org/abs/2605.19752)
-[![Zenodo](https://img.shields.io/badge/data-Zenodo-000080)](https://arxiv.org/abs/2605.19752)
+[![Zenodo](https://img.shields.io/badge/data-Zenodo-000080)](https://zenodo.org/records/22830464)
 [![NeurIPS 2026](https://img.shields.io/badge/NeurIPS-2026-0B6E4F)](https://arxiv.org/abs/2605.19752)
 
 ![MSAlign Overview](data/MSAlign.jpg)
 
-**MSAlign** is a model that aligns the latent space of MolDeBERTa and DreaMS and use the similarity in shared space for molecular retrieval.
+**MSAlign** aligns DreaMS spectrum representations and MolDeBERTa molecular
+representations, then uses similarity in the shared space for molecular
+retrieval.
 
-**MSAlign+** combines 7 different scores (including MSAlign) via late score fusion to further improves the retrieval accuracy. 
+**MSAlign+** combines the four scores in
+`{DreaMS, bins} × {MolDeBERTa, Morgan}` with estimated-mass scores at 0.01,
+0.1, 1, and 10 ppm.
 
-## Environment
-
-Python 3.11, `uv`, and a CUDA GPU are recommended.
-
-```bash
-git clone https://github.com/KrzakalaPaul/MSAlign.git
-cd MSAlign
-uv sync
-source .venv/bin/activate
-```
-
-The default environment contains MSAlign, score fusion, DeepSets, and EmbCos.
-It deliberately excludes the two troublesome optional stacks:
-
-- **DreaMS** is needed only to create `dreams.npy`. The preprocessing command
-  runs it in an isolated `uv` environment, so its legacy dependency pins do not
-  alter `.venv`.
-- **DGL** is needed only for the JESTR, FLARE, and MVP baselines. Install it
-  with `uv sync --extra graph-baselines`; MSAlign itself never imports DGL.
-  The released DGL wheel targets Linux, Python 3.11, and CUDA 12.1.
-
-Raw-data download and MolDeBERTa encoding require the preprocessing extra:
+Clone the repository, then choose either the pretrained inference workflow or
+the full experiment-reproduction workflow below:
 
 ```bash
-uv sync --extra preprocessing
-source .venv/bin/activate
+git clone https://github.com/KrzakalaPaul/MSAlign-NeurIPS2026.git
+cd MSAlign-NeurIPS2026
 ```
 
-MolDeBERTa is gated. Accept the terms for
-`SaeedLab/MolDeBERTa-base-123M-mtr`, then set `HF_TOKEN` before encoding.
+## Applying pretrained MSAlign to my data
 
-For inference directly from a peak list and a SMILES string, see the
-[raw-input playground](playground/README.md). It uses a separate environment
-containing both frozen foundation models and does not require precomputed
-representation files.
+The playground scores a centroided spectrum against one or more candidate
+SMILES. It requires neither training data nor precomputed embeddings.
 
-## Reproduce MSAlign from scratch
+Requirements:
+
+- Python 3.11 and [`uv`](https://docs.astral.sh/uv/);
+- a CUDA GPU;
+- access to the gated
+  [MolDeBERTa model](https://huggingface.co/SaeedLab/MolDeBERTa-base-123M-mtr).
+
+### 1. Download a checkpoint
+
+Download one of the pretrained checkpoint archives from
+[Zenodo record 22830464](https://zenodo.org/records/22830464), then extract it
+under `checkpoints/`:
+
+```bash
+mkdir -p checkpoints
+unzip msalign_massspecgym_formula_seed0.zip -d checkpoints
+```
+
+- MSAlign example: `checkpoints/msalign_massspecgym_formula_seed0/`
+- MSAlign+ archives use the same directory layout.
+
+### 2. Install the inference environment
+
+The playground uses its own `playground/.venv`. After accepting the MolDeBERTa
+terms, run:
+
+```bash
+uv sync --project playground --locked
+export HF_TOKEN=hf_your_token_here
+code .
+```
+
+### 3. Open the notebook
+
+- Open `playground/MSAlign_playground.ipynb` in VS Code.
+- Select `playground/.venv/bin/python` as the kernel.
+- Run the cells. Starting VS Code with `code .` passes `HF_TOKEN` to the kernel.
+
+### 4. Score candidates
+
+MSAlign and MSAlign+ expose the same interface:
+
+```python
+from playground import MSAlign
+
+model = MSAlign("checkpoints/msalign_massspecgym_formula_seed0")
+score = model(spectrum, "CCO")
+scores = model(spectrum, ["CCO", "CCCO", "c1ccccc1"])
+```
+
+- One candidate returns a `float`.
+- A candidate list returns scores in the same order.
+- Switching to MSAlign+ only requires changing the checkpoint path.
+- Input formats and preprocessing are documented in the
+  [playground README](playground/README.md).
+
+## Reproducing the training experiments
 
 The commands below rebuild the formula-split experiment from raw data. Existing
 outputs are reused, so interrupted stages can be rerun safely.
+
+### Training environments
+
+Training and inference use separate environments. The commands below operate on
+the root `.venv`; they never modify `playground/.venv`.
+
+- **Core training environment:** MSAlign training, evaluation, score fusion,
+  DeepSets, and EmbCos.
+
+  ```bash
+  uv sync
+  source .venv/bin/activate
+  ```
+
+- **Preprocessing extension:** raw-data preparation, MolDeBERTa, and Morgan
+  fingerprints. DreaMS encoding is launched automatically in its own isolated
+  environment because it requires an older dependency stack.
+
+  ```bash
+  uv sync --extra preprocessing
+  source .venv/bin/activate
+  ```
+
+- **Graph-baseline extension:** only JESTR, FLARE, and MVP require DGL. MSAlign
+  itself does not import it. The released DGL wheel targets Linux, Python 3.11,
+  and CUDA 12.1.
+
+  ```bash
+  uv sync --extra graph-baselines
+  source .venv/bin/activate
+  ```
+
+Running `uv sync` again restores the core environment after preprocessing or
+baseline reproduction. MolDeBERTa is gated: accept its
+[terms](https://huggingface.co/SaeedLab/MolDeBERTa-base-123M-mtr) and set
+`HF_TOKEN` before precomputing representations.
 
 ### 1. Download and prepare both datasets
 
@@ -57,7 +130,7 @@ outputs are reused, so interrupted stages can be rerun safely.
 python download_data.py massspecgym
 python download_data.py spectraverse
 
-for seed in 1 2 3; do
+for seed in 0 1 2 3 4; do
   python prepare_data.py massspecgym --split formula --seed "$seed"
   python prepare_data.py spectraverse --split formula --seed "$seed"
 done
@@ -67,13 +140,21 @@ This creates:
 
 - `official_candidates_by_mass` for MassSpecGym;
 - `256_candidates_by_mass` for SpectraVerse;
-- `formula_seed1`, `formula_seed2`, and `formula_seed3` for both datasets.
+- five formula splits, `formula_seed0` through `formula_seed4`, for both datasets.
 
 The creation of the candidate sets requires multiple CPU cores for fast execution.
 
-Alternatively, skip this preparation step by downloading `massspecgym.zip` and
-`spectraverse.zip` from [zenodo](https://zenodo.org/records/22830464), then extract them so that the data
-directory has the following layout:
+Alternatively, download the prepared archives from
+[Zenodo record 22830464](https://zenodo.org/records/22830464). The command
+verifies the published checksum, extracts safely, and skips an already complete
+dataset:
+
+```bash
+python download_prepared_data.py massspecgym
+python download_prepared_data.py spectraverse
+```
+
+The resulting directory layout is:
 
 ```text
 data/
@@ -93,17 +174,10 @@ python precompute_representations.py spectraverse \
   --candidate-map 256_candidates_by_mass
 ```
 
-This commands require a GPU. Estimated total runtime for a V100 is [TODO: add runtime].
+These commands require a GPU; runtime depends primarily on the candidate set.
 Each command generates DreaMS embeddings, MolDeBERTa embeddings, and packed
 Morgan fingerprints. Spectrum bins are computed on demand. DreaMS starts in its
 own environment automatically.
-
-After preprocessing, return to the minimal environment if desired:
-
-```bash
-uv sync
-source .venv/bin/activate
-```
 
 ### 3. Train MSAlign
 
@@ -115,8 +189,8 @@ python train_msalign.py \
   --config massspecgym_formula \
   --dataset massspecgym \
   --candidate-map official_candidates_by_mass \
-  --split formula_seed1 \
-  --output-checkpoint checkpoints/dreams_moldeberta/massspecgym__official_candidates_by_mass__formula_seed1.ckpt \
+  --split formula_seed0 \
+  --output-checkpoint checkpoints/dreams_moldeberta/massspecgym__official_candidates_by_mass__formula_seed0.ckpt \
   --no-logger
 ```
 
@@ -128,16 +202,62 @@ Evaluate the selected checkpoint once on the test candidates:
 
 ```bash
 python eval.py \
-  --checkpoint checkpoints/dreams_moldeberta/massspecgym__official_candidates_by_mass__formula_seed1.ckpt \
+  --checkpoint checkpoints/dreams_moldeberta/massspecgym__official_candidates_by_mass__formula_seed0.ckpt \
   --dataset massspecgym \
   --candidate-map official_candidates_by_mass \
-  --split formula_seed1 \
-  --output results/massspecgym__official_candidates_by_mass__formula_seed1.json \
+  --split formula_seed0 \
+  --output results/massspecgym__official_candidates_by_mass__formula_seed0.json \
   --verbose
 ```
 
 Recall uses conservative tie handling: a target tied with a negative is not
 ranked ahead of that negative.
+
+### 5. Train all models required by MSAlign+
+
+`--all-representations` trains the four representation pairs and writes them
+under `checkpoints/{dreams_moldeberta,dreams_fingerprint,bins_moldeberta,bins_fingerprint}`.
+
+```bash
+for seed in 0 1 2 3 4; do
+  python train_msalign.py \
+    --config massspecgym_formula \
+    --dataset massspecgym \
+    --candidate-map official_candidates_by_mass \
+    --split "formula_seed${seed}" \
+    --all-representations \
+    --no-logger
+
+  python train_msalign.py \
+    --config spectraverse_formula \
+    --dataset spectraverse \
+    --candidate-map 256_candidates_by_mass \
+    --split "formula_seed${seed}" \
+    --all-representations \
+    --no-logger
+done
+```
+
+Completed checkpoints are skipped when the command is rerun.
+
+### 6. Calibrate and evaluate score fusion
+
+The default fusion config uses the four checkpoint directories above and four
+Gaussian mass scores. For every split, weights and the
+listwise temperature are fit on validation candidates, then evaluated once on
+test candidates.
+
+```bash
+python fuse_and_eval.py \
+  --config models/MSAlign_fusion/configs/default.yaml \
+  --verbose
+```
+
+Results are written to `results/fusion.csv`; score tensors are cached in
+`cache/MSAlign_fusion`. To evaluate the four representation-pair scores without
+mass information, copy the YAML file and remove the `estimated_mass` scorers.
+Portable raw and fused checkpoint archives are described in the
+[playground documentation](playground/README.md).
 
 ### Measure train–test distribution shift
 
@@ -168,50 +288,6 @@ Add `--normalize` to also collect the five available random references
 \]
 
 Every missing raw value is added to the same CSV; cached rows are reused.
-
-### 5. Train all models required by MSAlign+
-
-`--all-representations` trains the four representation pairs and writes them
-under `checkpoints/{dreams_moldeberta,dreams_fingerprint,bins_moldeberta,bins_fingerprint}`.
-
-```bash
-for seed in 1 2 3; do
-  python train_msalign.py \
-    --config massspecgym_formula \
-    --dataset massspecgym \
-    --candidate-map official_candidates_by_mass \
-    --split "formula_seed${seed}" \
-    --all-representations \
-    --no-logger
-
-  python train_msalign.py \
-    --config spectraverse_formula \
-    --dataset spectraverse \
-    --candidate-map 256_candidates_by_mass \
-    --split "formula_seed${seed}" \
-    --all-representations \
-    --no-logger
-done
-```
-
-Completed checkpoints are skipped when the command is rerun.
-
-### 6. Calibrate and evaluate score fusion
-
-The default fusion config uses the four checkpoint directories above and the
-three Gaussian mass scores used by MSAlign⁴M. For every split, weights and the
-listwise temperature are fit on validation candidates, then evaluated once on
-test candidates.
-
-```bash
-python fuse_and_eval.py \
-  --config models/MSAlign_fusion/configs/default.yaml \
-  --verbose
-```
-
-Results are written to `results/fusion.csv`; score tensors are cached in
-`cache/MSAlign_fusion`. To evaluate MSAlign⁴ without mass information, copy the
-YAML file and remove the three `estimated_mass` scorers.
 
 ## MassSpecGym MCES splits
 
