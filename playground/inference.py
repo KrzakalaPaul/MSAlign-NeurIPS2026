@@ -92,8 +92,8 @@ def _validate_spectrum(spectrum: dict) -> tuple[np.ndarray, float, object, float
         collision_energy = float("nan")
     else:
         collision_energy = float(collision_energy)
-        if not math.isfinite(collision_energy):
-            raise ValueError("collision_energy must be finite or None")
+        if math.isinf(collision_energy):
+            raise ValueError("collision_energy must be finite, NaN, or None")
     return peaks, precursor_mz, spectrum.get("adduct"), collision_energy
 
 

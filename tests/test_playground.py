@@ -70,6 +70,21 @@ class BundleTests(unittest.TestCase):
         self.assertTrue(np.isnan(_adduct_offset(None)))
         self.assertTrue(np.isfinite(_adduct_offset("[M+H]+")))
 
+    def test_nan_collision_energy_is_missing(self):
+        spectrum = {
+            "peaks": [[10.0, 1.0], [20.0, 0.5]],
+            "precursor_mz": 100.0,
+        }
+        for missing in (None, float("nan"), np.float32("nan"), "nan"):
+            spectrum["collision_energy"] = missing
+            *_, energy = _validate_spectrum(spectrum)
+            self.assertTrue(np.isnan(energy))
+
+        for invalid in (float("inf"), float("-inf")):
+            spectrum["collision_energy"] = invalid
+            with self.assertRaisesRegex(ValueError, "finite, NaN, or None"):
+                _validate_spectrum(spectrum)
+
     def test_binning_matches_training_transform_and_uses_all_peaks(self):
         peaks = np.column_stack((np.arange(150) + 0.25, np.arange(150) + 1.0))
         expected = BIN_Transform(max_mz=200.0, bin_width=1.0)(peaks)

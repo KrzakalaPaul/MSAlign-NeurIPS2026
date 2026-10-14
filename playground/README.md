@@ -107,10 +107,10 @@ Whitespace is removed, and the common aliases `[M+CH3COO]-`, `[M+FA-H]-`, and
 model's learned unknown-adduct embedding. It also disables the mass-score
 channels in MSAlign+, because a neutral mass cannot be inferred reliably.
 
-`collision_energy` is an optional finite number. Supply the numerical value in
-the convention reported by the experiment; the playground does not convert
-between eV, normalized collision energy, or instrument-specific conventions.
-`None` uses the learned missing-energy embedding.
+`collision_energy` is optional. Supply a finite numerical value in the
+convention reported by the experiment; the playground does not convert between
+eV, normalized collision energy, or instrument-specific conventions. Both
+`None` and NaN use the learned missing-energy embedding.
 
 ### Candidate molecules
 
