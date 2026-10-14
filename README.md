@@ -50,6 +50,44 @@ For inference directly from a peak list and a SMILES string, see the
 containing both frozen foundation models and does not require precomputed
 representation files.
 
+## Applying pretrained MSAlign to my data
+
+The playground scores a raw centroided spectrum against one or more candidate
+SMILES. It does not require the training datasets or precomputed embeddings.
+
+First, extract one downloaded checkpoint archive:
+
+```bash
+mkdir -p checkpoints
+unzip msalign_massspecgym_formula_seed0.zip -d checkpoints
+```
+
+Install the isolated inference environment. Accept the
+[MolDeBERTa terms](https://huggingface.co/SaeedLab/MolDeBERTa-base-123M-mtr)
+and provide a Hugging Face token before the first use:
+
+```bash
+uv sync --project playground --locked
+export HF_TOKEN=hf_your_token_here
+uv run --project playground jupyter lab playground/MSAlign_playground.ipynb
+```
+
+The notebook defines the spectrum and candidates directly and exposes the same
+interface for MSAlign and MSAlign+:
+
+```python
+from playground import MSAlign
+
+model = MSAlign("checkpoints/msalign_massspecgym_formula_seed0")
+score = model(spectrum, "CCO")
+scores = model(spectrum, ["CCO", "CCCO", "c1ccccc1"])
+```
+
+A single candidate returns a `float`; a candidate list returns scores in the
+same order. Switching from MSAlign to MSAlign+ only requires changing the
+checkpoint path. See the [playground documentation](playground/README.md) for
+the expected spectrum, metadata, and SMILES formats. A CUDA GPU is required.
+
 ## Reproduce MSAlign from scratch
 
 The commands below rebuild the formula-split experiment from raw data. Existing
