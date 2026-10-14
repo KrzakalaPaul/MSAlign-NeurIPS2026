@@ -20,6 +20,20 @@ uv sync --locked --extra preprocessing
 echo "[2/2] Creating the isolated DreaMS environment"
 uv sync --project playground --locked
 
+# An interrupted installation can leave a package's metadata in place while
+# compiled extension modules are missing. In that case `uv sync` considers the
+# environment current, so repair SciPy explicitly before checking the complete
+# inference import chain.
+if ! playground/.venv/bin/python -c "import scipy.sparse._csr" >/dev/null 2>&1; then
+  echo "Repairing an incomplete SciPy installation"
+  uv pip install \
+    --python playground/.venv/bin/python \
+    --reinstall-package scipy \
+    "scipy==1.15.3"
+fi
+
 test -x .venv/bin/python
 test -x playground/.venv/bin/python
+playground/.venv/bin/python -c \
+  "from scipy.sparse import csr_matrix; from transformers import AutoModel; from playground import MSAlign"
 echo "Shared environments are ready. The SLURM jobs do not require uv."
