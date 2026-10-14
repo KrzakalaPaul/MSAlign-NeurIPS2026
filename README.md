@@ -1,7 +1,7 @@
 # MSAlign: Aligning Molecule and Mass Spectra representations for Metabolite Identification
 
 [![arXiv](https://img.shields.io/badge/arXiv-2505.22109-B31B1B)](https://arxiv.org/abs/2605.19752)
-[![Zenodo](https://img.shields.io/badge/data-Zenodo-000080)](https://arxiv.org/abs/2605.19752)
+[![Zenodo](https://img.shields.io/badge/data-Zenodo-000080)](https://zenodo.org/records/22830464)
 [![NeurIPS 2026](https://img.shields.io/badge/NeurIPS-2026-0B6E4F)](https://arxiv.org/abs/2605.19752)
 
 ![MSAlign Overview](data/MSAlign.jpg)
@@ -30,12 +30,18 @@ uses its own `playground/.venv`, independently of the training environment.
 
 Python 3.11, [`uv`](https://docs.astral.sh/uv/), and a CUDA GPU are required.
 
-First, extract one downloaded checkpoint archive:
+Download one of the pretrained checkpoint archives from
+[Zenodo record 22830464](https://zenodo.org/records/22830464). From the
+repository root, extract it under `checkpoints/`:
 
 ```bash
 mkdir -p checkpoints
 unzip msalign_massspecgym_formula_seed0.zip -d checkpoints
 ```
+
+This produces, for example,
+`checkpoints/msalign_massspecgym_formula_seed0/`, which is the path passed to
+`MSAlign`. The MSAlign+ archives are extracted in exactly the same way.
 
 Install the isolated inference environment. Accept the
 [MolDeBERTa terms](https://huggingface.co/SaeedLab/MolDeBERTa-base-123M-mtr)
