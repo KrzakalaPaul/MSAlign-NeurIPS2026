@@ -14,46 +14,21 @@ retrieval.
 `{DreaMS, bins} × {MolDeBERTa, Morgan}` with estimated-mass scores at 0.01,
 0.1, 1, and 10 ppm.
 
-## Environment
-
-Python 3.11, `uv`, and a CUDA GPU are recommended.
+Clone the repository, then choose either the pretrained inference workflow or
+the full experiment-reproduction workflow below:
 
 ```bash
 git clone https://github.com/KrzakalaPaul/MSAlign-NeurIPS2026.git
 cd MSAlign-NeurIPS2026
-uv sync
-source .venv/bin/activate
 ```
-
-The default environment contains MSAlign, score fusion, DeepSets, and EmbCos.
-It deliberately excludes the two troublesome optional stacks:
-
-- **DreaMS** is needed only to create `dreams.npy`. The preprocessing command
-  runs it in an isolated `uv` environment, so its legacy dependency pins do not
-  alter `.venv`.
-- **DGL** is needed only for the JESTR, FLARE, and MVP baselines. Install it
-  with `uv sync --extra graph-baselines`; MSAlign itself never imports DGL.
-  The released DGL wheel targets Linux, Python 3.11, and CUDA 12.1.
-
-Raw-data download and MolDeBERTa encoding require the preprocessing extra:
-
-```bash
-uv sync --extra preprocessing
-source .venv/bin/activate
-```
-
-MolDeBERTa is gated. Accept the terms for
-`SaeedLab/MolDeBERTa-base-123M-mtr`, then set `HF_TOKEN` before encoding.
-
-For inference directly from a peak list and a SMILES string, see the
-[raw-input playground](playground/README.md). It uses a separate environment
-containing both frozen foundation models and does not require precomputed
-representation files.
 
 ## Applying pretrained MSAlign to my data
 
 The playground scores a raw centroided spectrum against one or more candidate
-SMILES. It does not require the training datasets or precomputed embeddings.
+SMILES. It does not require the training datasets or precomputed embeddings. It
+uses its own `playground/.venv`, independently of the training environment.
+
+Python 3.11, [`uv`](https://docs.astral.sh/uv/), and a CUDA GPU are required.
 
 First, extract one downloaded checkpoint archive:
 
@@ -86,12 +61,48 @@ scores = model(spectrum, ["CCO", "CCCO", "c1ccccc1"])
 A single candidate returns a `float`; a candidate list returns scores in the
 same order. Switching from MSAlign to MSAlign+ only requires changing the
 checkpoint path. See the [playground documentation](playground/README.md) for
-the expected spectrum, metadata, and SMILES formats. A CUDA GPU is required.
+the expected spectrum, metadata, and SMILES formats.
 
-## Reproduce MSAlign from scratch
+## Reproducing the training experiments
 
 The commands below rebuild the formula-split experiment from raw data. Existing
 outputs are reused, so interrupted stages can be rerun safely.
+
+### Training environments
+
+Training and inference use separate environments. The commands below operate on
+the root `.venv`; they never modify `playground/.venv`.
+
+- **Core training environment:** MSAlign training, evaluation, score fusion,
+  DeepSets, and EmbCos.
+
+  ```bash
+  uv sync
+  source .venv/bin/activate
+  ```
+
+- **Preprocessing extension:** raw-data preparation, MolDeBERTa, and Morgan
+  fingerprints. DreaMS encoding is launched automatically in its own isolated
+  environment because it requires an older dependency stack.
+
+  ```bash
+  uv sync --extra preprocessing
+  source .venv/bin/activate
+  ```
+
+- **Graph-baseline extension:** only JESTR, FLARE, and MVP require DGL. MSAlign
+  itself does not import it. The released DGL wheel targets Linux, Python 3.11,
+  and CUDA 12.1.
+
+  ```bash
+  uv sync --extra graph-baselines
+  source .venv/bin/activate
+  ```
+
+Running `uv sync` again restores the core environment after preprocessing or
+baseline reproduction. MolDeBERTa is gated: accept its
+[terms](https://huggingface.co/SaeedLab/MolDeBERTa-base-123M-mtr) and set
+`HF_TOKEN` before precomputing representations.
 
 ### 1. Download and prepare both datasets
 
@@ -148,13 +159,6 @@ Each command generates DreaMS embeddings, MolDeBERTa embeddings, and packed
 Morgan fingerprints. Spectrum bins are computed on demand. DreaMS starts in its
 own environment automatically.
 
-After preprocessing, return to the minimal environment if desired:
-
-```bash
-uv sync
-source .venv/bin/activate
-```
-
 ### 3. Train MSAlign
 
 One command trains the paper's MSAlign model on one split. Validation R@1 is
@@ -188,36 +192,6 @@ python eval.py \
 
 Recall uses conservative tie handling: a target tied with a negative is not
 ranked ahead of that negative.
-
-### Measure train–test distribution shift
-
-The sliced Wasserstein-1 distance can be estimated directly from the paired
-representations, without constructing candidate sets:
-
-```bash
-python -m sliced_wasserstein \
-  --dataset spectraverse \
-  --split formula_seed1 \
-  --ms-representation dreams \
-  --mol-representation moldeberta_base_123m_mtr
-```
-
-Use `bins` and `morgan_2_4096` for the simple-vectorization comparison. Each
-modality is L2-normalized before concatenation. The script uses 100 random
-directions with seed 42 and updates the corresponding
-dataset/split/encoder-pair row in `sliced_wasserstein/results.csv`. If that row
-already exists, the computation is skipped.
-
-Add `--normalize` to also collect the five available random references
-(`random_seed0` through `random_seed4`) and report
-
-\[
-\mathrm{SWD}_{\mathrm{normalized}} =
-\frac{\mathrm{SWD}_{\mathrm{split}}}
-{\frac{1}{5}\sum_{i=0}^{4}\mathrm{SWD}_{\mathrm{random\_seed}i}}.
-\]
-
-Every missing raw value is added to the same CSV; cached rows are reused.
 
 ### 5. Train all models required by MSAlign+
 
@@ -264,6 +238,36 @@ Results are written to `results/fusion.csv`; score tensors are cached in
 mass information, copy the YAML file and remove the `estimated_mass` scorers.
 Portable raw and fused checkpoint archives are described in the
 [playground documentation](playground/README.md).
+
+### Measure train–test distribution shift
+
+The sliced Wasserstein-1 distance can be estimated directly from the paired
+representations, without constructing candidate sets:
+
+```bash
+python -m sliced_wasserstein \
+  --dataset spectraverse \
+  --split formula_seed1 \
+  --ms-representation dreams \
+  --mol-representation moldeberta_base_123m_mtr
+```
+
+Use `bins` and `morgan_2_4096` for the simple-vectorization comparison. Each
+modality is L2-normalized before concatenation. The script uses 100 random
+directions with seed 42 and updates the corresponding
+dataset/split/encoder-pair row in `sliced_wasserstein/results.csv`. If that row
+already exists, the computation is skipped.
+
+Add `--normalize` to also collect the five available random references
+(`random_seed0` through `random_seed4`) and report
+
+\[
+\mathrm{SWD}_{\mathrm{normalized}} =
+\frac{\mathrm{SWD}_{\mathrm{split}}}
+{\frac{1}{5}\sum_{i=0}^{4}\mathrm{SWD}_{\mathrm{random\_seed}i}}.
+\]
+
+Every missing raw value is added to the same CSV; cached rows are reused.
 
 ## MassSpecGym MCES splits
 
