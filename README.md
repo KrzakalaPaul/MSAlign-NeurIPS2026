@@ -1,7 +1,7 @@
 # MSAlign: Aligning Molecule and Mass Spectra representations for Metabolite Identification
 
 [![arXiv](https://img.shields.io/badge/arXiv-2505.22109-B31B1B)](https://arxiv.org/abs/2605.19752)
-[![Zenodo](https://img.shields.io/badge/data-Zenodo-000080)](https://zenodo.org/records/22830464)
+[![Zenodo](https://img.shields.io/badge/data-Zenodo-000080)](https://zenodo.org/records/23372807)
 [![NeurIPS 2026](https://img.shields.io/badge/NeurIPS-2026-0B6E4F)](https://arxiv.org/abs/2605.19752)
 
 ![MSAlign Overview](data/MSAlign.jpg)
@@ -37,7 +37,7 @@ Requirements:
 ### 1. Download a checkpoint
 
 Download one of the pretrained checkpoint archives from
-[Zenodo record 22830464](https://zenodo.org/records/22830464), then extract it
+[Zenodo record 23372807](https://zenodo.org/records/23372807), then extract it
 under `checkpoints/`:
 
 ```bash
@@ -145,7 +145,7 @@ This creates:
 The creation of the candidate sets requires multiple CPU cores for fast execution.
 
 Alternatively, download the prepared archives from
-[Zenodo record 22830464](https://zenodo.org/records/22830464). The command
+[Zenodo record 23372807](https://zenodo.org/records/23372807). The command
 verifies the published checksum, extracts safely, and skips an already complete
 dataset:
 
